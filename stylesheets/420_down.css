@@ -172,3 +172,8 @@ sup a:hover {
 .footnote sup a:hover {
   text-decoration: none;
 }
+
+.highlight {
+  font-size: 14px;
+  line-height: 18px;
+}

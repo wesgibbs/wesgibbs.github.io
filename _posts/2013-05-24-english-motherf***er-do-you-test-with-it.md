@@ -35,7 +35,12 @@ Natural language tests have tremendous value, it's just not the value you hear t
 I write my integration tests in RSpec these days. I write my tests in Ruby and that's great because that's what I code in. But now my RSpec integration tests have lots of comments in them, and those comments will look familiar to anyone who's spent time with Cucumber.
 
 {% highlight ruby %}
-[code]
+# Given Bo and Luke are caring for Jesse
+# And Luke elects to not receive the content of journal entries in his notifications
+# When I sign in as Bo
+# And I create a journal entry
+# Then an email is sent to Luke
+# And it does not contain the content of the journal entry
 {% endhighlight %}
 
 I start a new test by writing — in plain language — what the preconditions are, what steps the user should take, and what the outcome should be (Given-When-Then). It allows me to think about the interaction like a user. Then I add the Ruby code to make each piece work. The parts that get repeated get extracted to support modules (similar to step definitions, but these are just plain Ruby modules, no Regexp ranking logic to be burned by).
