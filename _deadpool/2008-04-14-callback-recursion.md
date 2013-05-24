@@ -1,0 +1,25 @@
+<p>I made a clumsy mistake with ActiveRecord callbacks recently. I fixed my mistake, but was left wondering if there is a better way to do it.</p>&#13;
+<p>When I save a specific ActiveRecord object, I need to iterate through all the other instances of that model and flip a flag, saving each one. For example, let's say I have a piece of functionality where users can create multiple tasks, but only one task can be active at any one time. So I have a model called <code>Task</code> and it has an attribute called <code>active</code>. When a user marks a task as active, I need to go through all their other tasks and make sure they are marked inactive.</p>&#13;
+<p>Initially, I tried to do this by implementing an <code>after_save</code> callback on the model.</p>&#13;
+<pre><code class="ruby">after_save :deactivate_other_tasks&#13;
+&#13;
+def deactivate_other_tasks&#13;
+  user.tasks.each do |task|&#13;
+    task.update_attribute(:active, false)&#13;
+  end&#13;
+end&#13;
+</code></pre>&#13;
+<p>The problem might be obvious to most, however, I had to write it, run it, and watch it fail to figure out the obvious. As I iterate through each task, every time I call <code>update_attribute</code>, I'm triggering the same <code>after_save</code> callback. This little recursion journey continues until the memory wall is hit.</p>&#13;
+<p>So I scrapped the callback approach and instead overrode <code>Task#active=</code></p>&#13;
+<pre><code class="ruby">def active=(arg)&#13;
+  write_attribute(:active, arg) # go ahead and change the attribute of this object&#13;
+  if (arg =~ /^true$/i) # case-insensitive match of just the string true&#13;
+    user.tasks.select { |x| x != self }.each { |x| x.update_attribute(:active, false) }&#13;
+  end&#13;
+end&#13;
+</code></pre>&#13;
+<p>This works great. The problem I have with it is that somewhere down the road, it would be easy for someone not familiar with this model to add a <code>before_save</code> or <code>after_save</code> callback for some entirely different reason, and fall into the same recursion trap. I can add some comments at the top of the class</p>&#13;
+<pre><code class="ruby"># Please do NOT add any callbacks triggered on save.&#13;
+</code></pre>&#13;
+<p>But that's just silly.</p>&#13;
+<p>Is there a Railsy way of doing this? Is there a way to save an ActiveRecord object and selectively indicate that you want to skip all the callbacks in that one instance?</p> 

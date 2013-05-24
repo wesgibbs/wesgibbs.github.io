@@ -1,0 +1,25 @@
+<p>MadPolitic has a collection of about a half dozen or so static pages that I refer to as the public site. These are all served off the www.madpolitic.com domain (i.e. http://www.madpolitic.com/faq and http://www.madpolitic.com/pricing). The dynamic portions of the app are all served through subdomain-per-account domains (like http://savethewhales.madpolitic.com/ and http://nowalmart.madpolitic.com/petition).</p>&#13;
+<p>Setting up Google Analytics for the public portion of the site was straightforward. All of my static content is served through the same layout, so all I had to do was include the GA javascript code in that layout to begin tracking.</p>&#13;
+<p>For the most part, I'm not interested in tracking traffic through my user's sites at their individual subdomains. However, there is one case where this is necessary: tracking new user sign-ups as a goal conversion.</p>&#13;
+<p>When a user signs up at MadPolitic, they are redirected from the sign up form at http://www.madpolitic.com/signup to the home page of their new MadPolitic site at http://sitename.madpoltic.com. That landing page is not part of the static content that is tracked by adding the GA code to my common layout. I could add the tracking code to this page, but then it would be counting every visit to that page and I'm not interested in every visit. I'm only interested in the first one which signifies that a new user has signed up.</p>&#13;
+<p>To further complicate things, it is served by a different subdomain than all the static pages. I learned that this is significant when setting up your GA profile.</p>&#13;
+<h2>If you'll be tracking across different subdomains</h2>&#13;
+<p>The trick here is to make sure your GA profile is set up for your primary domain, in my case: madpolitic.com as opposed to www.madpolitic.com. Using [domain].[tld] as opposed to [subdomain].[domain].[tld] gives you the flexibility to track page visits across multiple subdomains within the same GA profile. If you set the primary domain to [subdomain].[domain].[tld], you lose that option.</p>&#13;
+<h2>Tracking dynamically generated pages with the same URL path</h2>&#13;
+<p>In my case, I wanted to track http://www.madpolitic.com separately from http://usersite.madpolitic.com. To GA, both of these are the same Exact Match: /index.html. I cannot use the Head Match option because I do not know what the user subdomain URL will be ahead of time. I needed a way to tell GA that http://usersite.madpolitic.com/index.html was different than http://www.madpolitic.com/index.html.</p>&#13;
+<p>To do this, I set up a GA goal for an Exact Match on "/new_user.html". In the code that generates the index.html page for the user's site, I added the GA code again, but this time I gave <code>_trackPageview()</code> an argument.</p>&#13;
+<pre><code class="javascript">pageTracker._trackPageview("/new_user.html");&#13;
+</code></pre>&#13;
+<p>The string isn't important, as long as it matches the Goal you've set up in GA.</p>&#13;
+<p>I used a token that is placed in the request the first time the page is rendered but never again to make sure I only counted the goal the one time.</p>&#13;
+<h2>Partializing and Production</h2>&#13;
+<p>A this point, I'm using the GA code in three different places in my app. Because of this, I moved the code out into a _google_analytics.html.erb partial and made the parameter that is passed to _trackPageview dynamic. I also wrapped the whole thing in a condition that ensure the script is only rendered if the app is in production so page views while in development mode are not counted.</p>&#13;
+<pre><code class="javascript">  &lt;script type="text/javascript"&gt;&#13;
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");&#13;
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));&#13;
+  &lt;/script&gt;&#13;
+  &lt;script type="text/javascript"&gt;&#13;
+    var pageTracker = _gat._getTracker("UA-0000000-0");&#13;
+    pageTracker._trackPageview();&#13;
+  &lt;/script&gt;&#13;
+</code></pre> 

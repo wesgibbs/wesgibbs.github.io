@@ -1,0 +1,27 @@
+<p>There are two different forms for passing a block to a method in Ruby, one with braces, and one with do/end. I used to think they were equivalent, but recently learned that there is a subtle difference having to do with precedence. As an example</p>&#13;
+<pre><code class="ruby">def block_test(arg1)&#13;
+  "I received '#{arg1}' and " &lt;&lt; (block_given? ? "a block which yielded '#{yield}'" : "no block")&#13;
+end&#13;
+&#13;
+def speak&#13;
+  "I've been told to say " &lt;&lt; (block_given? ? yield : "nothing")&#13;
+end</code>&#13;
+</pre>&#13;
+<p>Looking at the brace form of passing blocks to methods, you can see that whether you surround your arguments with parentheses changes who gets the block</p>&#13;
+<pre><code class="ruby">block_test speak { "hello" } &#13;
+# =&gt; "I received 'I've been told to say hello' and no block"&#13;
+&#13;
+block_test(speak) { "hello" } &#13;
+# =&gt; "I received 'I've been told to say nothing' and a block which yielded 'hello'"&#13;
+</code></pre>&#13;
+<p>This is fairly intuitive. However, if you use the do/end form for the block, it gets passed as an argument to block_test whether you use parentheses or not</p>&#13;
+<pre><code class="ruby">block_test speak do&#13;
+ "hello"&#13;
+end&#13;
+# =&gt; "I received 'I've been told to say nothing' and a block which yielded 'hello'"&#13;
+&#13;
+block_test(speak) do&#13;
+ "hello"&#13;
+end&#13;
+# =&gt; "I received 'I've been told to say nothing' and a block which yielded 'hello'"&#13;
+</code></pre> 
