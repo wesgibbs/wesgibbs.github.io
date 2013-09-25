@@ -76,6 +76,7 @@ ul {
 }
 
 .site {
+  font-size: 20px;
   margin: 10px 2px;
 }
 
@@ -143,7 +144,6 @@ ul {
 }
 
 #content {
-  font-size: 20px;
   margin: 0 10px;
 } 
 
